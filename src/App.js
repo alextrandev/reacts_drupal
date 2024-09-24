@@ -16,7 +16,7 @@ function App() {
         </p>
         <a
           className="App-link"
-          href="https://github.com/kalwar/reactjs_drupal"
+          href="https://github.com/alextrandev/reacts_drupal"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -29,6 +29,7 @@ function App() {
           <NodeList />
         </div>
         <NodeForm />
+        <EditForm />
       </main>
     </div>
   );
@@ -60,11 +61,11 @@ class NodeList extends React.Component {
     // AJAX fetch server/node/rest?_format=json and setState with the response data
     try {
       const axios = await ajax() // wait for an initialized axios object
-      const response = await axios.get('/node/rest/') // wait for the POST AJAX request to complete
-      console.log(response.data);
+      const response = await axios.get('/node') // wait for the POST AJAX request to complete
+      // console.log(response.data);
       if (response.data) {
         // setState will trigger repaint
-        console.log(response.data);
+        // console.log(response.data);
         this.setState({ nodes: response.data })
       }
       } catch (e) {
@@ -110,6 +111,59 @@ class NodeList extends React.Component {
   }
 }
 
+const EditForm = () => {
+  const data = {}
+  // note the 'async' keyword, it allows us to call 'await' later
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const node = {     
+      type: [{
+        target_id: 'article',
+        target_type: 'node_type',
+      }],
+      title: [{
+        value: data.editTitle,
+      }],
+      body: [{
+        value: data.editBody,
+        format: 'plain_text',
+      }],
+    };
+    try {
+      const axios = await ajax() // wait for an initialized axios object
+      const response = await axios.patch(`/node/${data.editId}`, node) // wait for the POST AJAX request to complete
+      console.log('Node edited: ', response.data)
+      emitter.emit('NODE_UPDATED')
+    } catch (e) {
+      alert(e)
+    }
+  }
+  const handleChange = (e, propName) => {
+    data[propName] = e.target.value
+  }
+
+  return (
+    <div className="create-node-form">
+      <h4>Edit Node Form</h4>
+      <form onSubmit={handleSubmit}>
+        <label>ID</label>
+        <br />
+        <input type="number" onChange={e => handleChange(e, 'editId')}></input>
+        <br />
+        <label>Title</label>
+        <br />
+        <input type="text" onChange={e => handleChange(e, 'editTitle')}></input>
+        <br />
+        <label>Body</label>
+        <br />
+        <textarea onChange={e => handleChange(e, 'editBody')}></textarea>
+        <br />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  )
+}
+
 const NodeForm = () => {
   const data = {}
   // note the 'async' keyword, it allows us to call 'await' later
@@ -130,7 +184,7 @@ const NodeForm = () => {
     };
     try {
       const axios = await ajax() // wait for an initialized axios object
-      const response = await axios.post('/node/', node) // wait for the POST AJAX request to complete
+      const response = await axios.post('/node', node) // wait for the POST AJAX request to complete
       console.log('Node created: ', response.data)
       emitter.emit('NODE_UPDATED')
     } catch (e) {
